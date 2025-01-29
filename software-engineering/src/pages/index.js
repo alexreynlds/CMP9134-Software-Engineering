@@ -22,8 +22,11 @@ import {
   useCreateUserWithEmailAndPassword,
 } from "react-firebase-hooks/auth";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 const Page = () => {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password1, setPassword1] = useState("");
@@ -38,6 +41,9 @@ const Page = () => {
 
   function handleFlip() {
     setIsFlipped(!isFlipped);
+    setEmail("");
+    setPassword("");
+    setPassword1("");
   }
 
   const handleEmailChange = (e) => {
@@ -121,6 +127,7 @@ const Page = () => {
           isClosable: true,
         });
       }
+      router.push("/home");
     } catch (err) {
       toaster.create({
         title: "Login Failed",
@@ -146,7 +153,7 @@ const Page = () => {
       <motion.div
         className="card"
         animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 1 }}
+        transition={{ duration: 0.5 }}
         style={{
           width: "100%",
           height: "100%",
@@ -175,6 +182,7 @@ const Page = () => {
             h={{ base: "65vh", md: "700px" }}
             display="flex"
             flexDir="column"
+            bg="white"
           >
             <Heading as="h1" size="6xl" textDecor="underline" mb={"25px"}>
               Sign In
@@ -262,6 +270,7 @@ const Page = () => {
             h={{ base: "65vh", md: "700px" }}
             display="flex"
             flexDir="column"
+            bg="white"
           >
             <Heading as="h1" size="6xl" textDecor="underline" mb={"25px"}>
               SIGN UP
