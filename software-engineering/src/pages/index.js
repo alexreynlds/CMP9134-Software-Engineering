@@ -9,17 +9,41 @@ import {
   Text,
   Separator,
   Link,
+  FormControl,
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import NextLink from "next/link";
+import { useState } from "react";
+import { auth } from "@/firebase/config";
+import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 
 const Page = () => {
-  const handleLogin = () => {
-    toaster.create({
-      title: "Successful Login",
-      type: "success",
-      description: "Toast Description",
-    });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await signInWithEmailAndPassword(email, password);
+      if (res.user) {
+        toaster.create({
+          title: "Login Successful",
+          description: "You are now logged in.",
+          type: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (err) {
+      toaster.create({
+        title: "Login Failed",
+        description: "Incorrect email or password.",
+        type: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -37,8 +61,23 @@ const Page = () => {
           Sign In
         </Heading>
         <Flex flexDir="column" flexGrow={1}>
-          <Input placeholder="Username" size="2xl" mb={5} />
-          <PasswordInput placeholder="Password" size="2xl" />
+          <Input
+            placeholder="email"
+            size="2xl"
+            mb={5}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+          />
+          <PasswordInput
+            placeholder="Password"
+            size="2xl"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+          />
           <Link
             as={NextLink}
             href="/"
@@ -78,7 +117,7 @@ const Page = () => {
             onClick={handleLogin}
           >
             SIGN UP
-          </Button>{" "}
+          </Button>
         </Flex>
       </Container>
     </Layout>
