@@ -5,6 +5,7 @@ import { auth } from '@/firebase/firebaseConfig'
 import { useToast } from '@/hooks/use-toast'
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
+import { FaHeart } from "react-icons/fa";
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -43,20 +44,21 @@ function Dashboard() {
   }, [])
 
   return (
-    <div className="flex flex-col items-center text-black justify-center w-1/2 h-2/3 rounded-xl backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
+    <div className="items-center text-black justify-center w-1/2 h-2/3 rounded-xl backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
       <h1 className="mb-3 text-black">Welcome, {user ? user.email : ""}</h1>
-      <form className="w-1/3 mb-3" onSubmit={handleSearch}>
+      <form className="w-1/3 " onSubmit={handleSearch}>
         <div className="flex">
           <Input placeholder="Type to search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="rounded-l-xl" />
           <Button className="rounded-r-xl">Search</Button>
         </div>
       </form>
-      <div className="grid grid-cols-8 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl">
+      <div className="grid grid-cols-8 my-3 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl">
         {searchResults.map((result: any) => (
-          <div key={result.id}>
+          <div key={result.id} className="hover:scale-110 relative hover:scale-110 hover:rotate-[2deg]" >
             <a href={result.url} title={result.title}>
-              <img src={result.thumbnail} alt={result.title} className="rounded-xl" />
+              <img src={result.thumbnail} alt={result.title} className="rounded-xl  shadow-lg" />
             </a>
+            <Button className="absolute top-0 rounded-tl-xl z-10 bg-white/50 text-white hover:text-red-500 hover:bg-white/50"><FaHeart /></Button>
           </div>
         ))}
       </div>
