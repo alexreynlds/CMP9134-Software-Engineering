@@ -56,7 +56,7 @@ function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <Card className="text-left w-[400px] min-h-[500px] flex flex-col shadow-xl">
+      <Card className="text-left w-[400px] min-h-[500px] flex flex-col shadow-xl bg-white/100 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-4xl">Login</CardTitle>
           <CardDescription>Please login with your email and password</CardDescription>

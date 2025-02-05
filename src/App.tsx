@@ -24,7 +24,7 @@ export function App() {
           {format(time, 'yyyy-MM-dd HH:mm:ss')}
         </p>
       </div>
-      <div className="mt-[-50px] pt-[50px] flex flex-grow justify-center h-screen">
+      <div className="mt-[-50px] pt-[50px] flex flex-grow justify-center h-screen w-screen items-center">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="*" element={<NotFound />} />
