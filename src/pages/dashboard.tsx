@@ -81,11 +81,13 @@ function Dashboard() {
     fetchUserData()
   }, [user])
 
+  console.log(userProfile)
+
 
   return (
     <div className="items-center text-black justify-center w-1/2 h-2/3 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
       <div className="flex relative w-full justify-center text-center align-center items-center">
-        <h1>Welcome, {userProfile ? userProfile.username : "Loading..."}</h1>
+        <h1>Welcome, {userProfile ? userProfile.username ? userProfile.username : userProfile.email : "Loading..."}</h1>
         <text className="absolute right-0 cursor-pointer hover:text-gray-400 flex items-center gap-1" onClick={toggleSettings}><FaCog />account settings</text>
       </div>
       <div className="p-3 w-full h-full rounded-xl  justify-center flex flex-col">
@@ -97,9 +99,10 @@ function Dashboard() {
             </div>
           </form>
         </div>
-        <div className="grid grid-cols-8 my-3 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full">
+        {/* Search Results */}
+        <div className="grid grid-cols-8 my-3 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full overflow-auto">
           {searchResults.map((result: any) => (
-            <div key={result.id} className="relative hover:scale-110 hover:rotate-[2deg]" >
+            <div key={result.id} className={`relative hover:scale-110 hover:rotate-[2deg]`}>
               <a href={result.url} title={result.title}>
                 <img src={result.thumbnail} alt={result.title} className="rounded-xl  shadow-lg" />
               </a>
