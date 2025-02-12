@@ -13,8 +13,9 @@ import { db } from '@/firebase/firebaseConfig'
 import { useToast } from '@/hooks/use-toast'
 import { motion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
-import { addDoc, collection, getDoc, doc, setDoc } from 'firebase/firestore'
-
+import { getDoc, doc, setDoc } from 'firebase/firestore'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useEffect } from 'react'
 
 function Login() {
   const router = useNavigate()
@@ -23,6 +24,7 @@ function Login() {
   const [passwordConf, setPasswordConf] = useState('')
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
   const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPassword(auth);
+  const [rememberMe, setRememberMe] = useState(false)
   const { toast } = useToast()
 
   const [isFlipped, setIsFlipped] = useState(false)
@@ -36,17 +38,27 @@ function Login() {
           title: "Login Successful!",
           description: "You have successfully logged"
         })
+
         const docRef = doc(db, "users", res.user.uid);
-        if ((await getDoc(docRef)).exists()) {
-          router('/dashboard')
-        }
-        else {
+        if (!(await getDoc(docRef)).exists()) {
           await setDoc(doc(db, "users", res.user.uid), {
             uid: res.user.uid,
             email: res.user.email,
           });
-          router('/dashboard')
         }
+
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", email);
+          localStorage.setItem("rememberedPassword", password);
+          localStorage.setItem("rememberMe", "true");
+        } else {
+          localStorage.removeItem("rememberedEmail");
+          localStorage.removeItem("rememberedPassword");
+          localStorage.removeItem("rememberMe");
+        }
+
+        router("/dashboard")
+
       } else {
         toast({
           title: "Login Failed!",
@@ -98,6 +110,23 @@ function Login() {
     setIsFlipped(!isFlipped)
   }
 
+  useEffect(() => {
+    console.log(rememberMe)
+  }, [rememberMe])
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("rememberedEmail");
+    const storedPassword = localStorage.getItem("rememberedPassword");
+    const storedRememberMe = localStorage.getItem("rememberMe");
+
+    if (storedEmail && storedPassword && storedRememberMe === "true") {
+      setEmail(storedEmail);
+      setPassword(storedPassword);
+      setRememberMe(true);
+    }
+  }, []);
+
+
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <motion.div
@@ -129,6 +158,14 @@ function Login() {
                 <Input type="email" placeholder="Email" className="mb-3 h-[40px]" onChange={(e) => setEmail(e.target.value)} value={email} />
                 <Label className="text-xl">Password</Label>
                 <Input type="password" placeholder="Password" className="h-[40px]" onChange={(e) => setPassword(e.target.value)} value={password} />
+
+                <div className="flex gap-3 mt-3 items-center">
+                  <Checkbox
+                    checked={rememberMe}
+                    onCheckedChange={() => setRememberMe(!rememberMe)}
+                  />
+                  <text>Remember Me</text>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-0 mt-auto h-auto pb-0">
                 <Button type="submit" className="mt-5 w-full rounded-xl">SIGN IN</Button>
@@ -199,7 +236,7 @@ function Login() {
           </Card>
         </motion.div>
       </motion.div>
-    </div>
+    </div >
   )
 }
 

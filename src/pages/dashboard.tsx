@@ -81,6 +81,7 @@ function Dashboard() {
     fetchUserData()
   }, [user])
 
+
   return (
     <div className="items-center text-black justify-center w-1/2 h-2/3 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
       <div className="flex relative w-full justify-center text-center align-center items-center">
