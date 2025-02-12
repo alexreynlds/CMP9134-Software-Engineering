@@ -178,7 +178,6 @@ function Dashboard() {
 
         {/* Favourites Page */}
         {currentPage == "favourites" && (
-          console.log(favourites),
           <div className="grid grid-cols-8 my-3 w-full p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full overflow-auto">
             {favourites.map((fav: any) => (
               <div key={fav.id} className={`relative`}>
