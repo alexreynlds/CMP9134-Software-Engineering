@@ -6,17 +6,25 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useSignInWithEmailAndPassword,
+  useCreateUserWithEmailAndPassword
 } from "react-firebase-hooks/auth";
+
 import { auth } from '@/firebase/firebaseConfig'
 import { useToast } from '@/hooks/use-toast'
+import { Separator } from '@/components/ui/separator'
+import { motion } from 'framer-motion'
 
 
 function Login() {
   const router = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConf, setPasswordConf] = useState('')
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
+  const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPassword(auth);
   const { toast } = useToast()
+
+  const [isFlipped, setIsFlipped] = useState(false)
 
 
   const login = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,34 +54,141 @@ function Login() {
       })
     }
   }
-  const test1 = (e: React.FormEvent<HTMLFormElement>) => {
+
+  const signup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast({
-      title: "Toast!",
-      description: "This is a toast message",
-    })
+    if (password !== passwordConf) {
+      toast({
+        title: "Signup Failed!",
+        description: "Passwords do not match",
+        variant: "destructive",
+      })
+      return
+    }
+    try {
+      const res = await createUserWithEmailAndPassword(email, password);
+      if (res.user) {
+        toast({
+          title: "Signup Successful!",
+          description: "You can now login with your account",
+        })
+      }
+    } catch (err) {
+      console.log("Invalid Signup");
+      toast({
+        title: "Signup Failed!",
+        description: "Ensure your email and password are correct",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleFlip = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsFlipped(!isFlipped)
   }
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <Card className="text-left w-[400px] min-h-[500px] flex flex-col shadow-xl bg-white/100 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-4xl">Login</CardTitle>
-          <CardDescription>Please login with your email and password</CardDescription>
-        </CardHeader>
-        <form onSubmit={login} className="flex flex-col flex-grow">
-          <CardContent className="flex flex-col flex-grow">
-            <Label className="text-xl">Email</Label>
-            <Input type="email" placeholder="Email" className="mb-3 h-[40px]" onChange={(e) => setEmail(e.target.value)} value={email} />
-            <Label className="text-xl">Password</Label>
-            <Input type="password" placeholder="Password" className="h-[40px]" onChange={(e) => setPassword(e.target.value)} value={password} />
-          </CardContent>
-          <CardFooter className="flex flex-col gap-0 mt-auto">
-            <Button type="submit" className="mt-5 w-full rounded-xl">SIGN IN</Button>
-            <Button variant="outline" onClick={test1} className="mt-5 w-full rounded-xl">SIGN UP</Button>
-          </CardFooter>
-        </form>
-      </Card>
+      <motion.div
+        className="card w-[400px] h-[600px] relative [transform-style:preserve-3d] [backface-visibility:hidden]"
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 1 }}
+      >
+        <motion.div
+          className="card-front"
+          style={{
+            position: "absolute",
+            backfaceVisibility: "hidden",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Card className="text-left w-[400px] min-h-[500px] flex flex-col shadow-xl bg-white/100 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-4xl">Login</CardTitle>
+              <CardDescription>Please login with your email and password</CardDescription>
+            </CardHeader>
+
+            <form onSubmit={login} className="flex flex-col flex-grow">
+              <CardContent className="flex flex-col flex-grow">
+                <Label className="text-xl">Email</Label>
+                <Input type="email" placeholder="Email" className="mb-3 h-[40px]" onChange={(e) => setEmail(e.target.value)} value={email} />
+                <Label className="text-xl">Password</Label>
+                <Input type="password" placeholder="Password" className="h-[40px]" onChange={(e) => setPassword(e.target.value)} value={password} />
+              </CardContent>
+              <CardFooter className="flex flex-col gap-0 mt-auto h-auto pb-0">
+                <Button type="submit" className="mt-5 w-full rounded-xl">SIGN IN</Button>
+              </CardFooter>
+            </form>
+            <div className="flex w-full items-center gap-3 my-3">
+              <Separator className="flex flex-grow w-auto" />
+              <text className="font-bold">OR</text>
+              <Separator className="flex flex-grow w-auto" />
+            </div>
+            <CardFooter className="flex flex-col gap-0 h-auto">
+              <form onSubmit={handleFlip} className="w-full">
+                <Button type="submit" variant="outline" className=" w-full rounded-xl">
+                  SIGN UP
+                </Button>
+              </form>
+            </CardFooter>
+          </Card>
+        </motion.div>
+        <motion.div
+          className="card-back"
+          style={{
+            position: "absolute",
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Card className="text-left w-[400px] min-h-[500px] flex flex-col shadow-xl bg-white/100 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-4xl">SIGNUP</CardTitle>
+              <CardDescription>Please login with your email and password</CardDescription>
+            </CardHeader>
+
+            <form onSubmit={signup} className="flex flex-col flex-grow">
+              <CardContent className="flex flex-col flex-grow gap-3">
+                <div>
+                  <Label className="text-xl">Email</Label>
+                  <Input type="email" placeholder="Email" className="h-[40px]" onChange={(e) => setEmail(e.target.value)} value={email} />
+                </div>
+                <div>
+                  <Label className="text-xl">Password</Label>
+                  <Input type="text" placeholder="Password" className="h-[40px]" onChange={(e) => setPassword(e.target.value)} value={password} />
+                </div>
+                <div>
+                  <Label className="text-xl">Confirm Password</Label>
+                  <Input type="text" placeholder="Password" className="h-[40px]" onChange={(e) => setPasswordConf(e.target.value)} value={passwordConf} />
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-0 mt-auto h-auto pb-0">
+                <Button type="submit" className="mt-5 w-full rounded-xl">SIGN UP</Button>
+              </CardFooter>
+            </form>
+            <div className="flex w-full items-center gap-3 my-3">
+              <Separator className="flex flex-grow w-auto" />
+              <text className="font-bold">OR</text>
+              <Separator className="flex flex-grow w-auto" />
+            </div>
+            <CardFooter className="flex flex-col gap-0 h-auto">
+              <form onSubmit={handleFlip} className="w-full">
+                <Button type="submit" variant="outline" className=" w-full rounded-xl">SIGN IN</Button>
+              </form>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
