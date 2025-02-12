@@ -8,11 +8,12 @@ import {
   useSignInWithEmailAndPassword,
   useCreateUserWithEmailAndPassword
 } from "react-firebase-hooks/auth";
-
 import { auth } from '@/firebase/firebaseConfig'
+import { db } from '@/firebase/firebaseConfig'
 import { useToast } from '@/hooks/use-toast'
-import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
+import { Separator } from '@/components/ui/separator'
+import { addDoc, collection, getDoc, doc, setDoc } from 'firebase/firestore'
 
 
 function Login() {
@@ -26,7 +27,6 @@ function Login() {
 
   const [isFlipped, setIsFlipped] = useState(false)
 
-
   const login = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -36,7 +36,17 @@ function Login() {
           title: "Login Successful!",
           description: "You have successfully logged"
         })
-        router('/dashboard')
+        const docRef = doc(db, "users", res.user.uid);
+        if ((await getDoc(docRef)).exists()) {
+          router('/dashboard')
+        }
+        else {
+          await setDoc(doc(db, "users", res.user.uid), {
+            uid: res.user.uid,
+            email: res.user.email,
+          });
+          router('/dashboard')
+        }
       } else {
         toast({
           title: "Login Failed!",
