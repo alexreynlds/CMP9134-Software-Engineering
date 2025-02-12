@@ -21,6 +21,8 @@ function Login() {
   const router = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [signUpEmail, setSignUpEmail] = useState('')
+  const [signUpPassword, setSignUpPassword] = useState('')
   const [passwordConf, setPasswordConf] = useState('')
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
   const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPassword(auth);
@@ -79,7 +81,7 @@ function Login() {
 
   const signup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (password !== passwordConf) {
+    if (signUpPassword !== passwordConf) {
       toast({
         title: "Signup Failed!",
         description: "Passwords do not match",
@@ -88,7 +90,7 @@ function Login() {
       return
     }
     try {
-      const res = await createUserWithEmailAndPassword(email, password);
+      const res = await createUserWithEmailAndPassword(signUpEmail, signUpPassword);
       if (res.user) {
         toast({
           title: "Signup Successful!",
@@ -109,10 +111,6 @@ function Login() {
     e.preventDefault()
     setIsFlipped(!isFlipped)
   }
-
-  useEffect(() => {
-    console.log(rememberMe)
-  }, [rememberMe])
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("rememberedEmail");
@@ -208,11 +206,11 @@ function Login() {
               <CardContent className="flex flex-col flex-grow gap-3">
                 <div>
                   <Label className="text-xl">Email</Label>
-                  <Input type="email" placeholder="Email" className="h-[40px]" onChange={(e) => setEmail(e.target.value)} value={email} />
+                  <Input type="email" placeholder="Email" className="h-[40px]" onChange={(e) => setSignUpEmail(e.target.value)} value={signUpEmail} />
                 </div>
                 <div>
                   <Label className="text-xl">Password</Label>
-                  <Input type="text" placeholder="Password" className="h-[40px]" onChange={(e) => setPassword(e.target.value)} value={password} />
+                  <Input type="text" placeholder="Password" className="h-[40px]" onChange={(e) => setSignUpPassword(e.target.value)} value={signUpPassword} />
                 </div>
                 <div>
                   <Label className="text-xl">Confirm Password</Label>

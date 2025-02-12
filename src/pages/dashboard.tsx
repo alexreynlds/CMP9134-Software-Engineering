@@ -9,6 +9,7 @@ import { FaHeart, FaCog } from "react-icons/fa";
 import { AnimatePresence, motion } from 'framer-motion'
 import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore'
 import { db } from '@/firebase/firebaseConfig'
+import { Separator } from '@/components/ui/separator'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -18,10 +19,10 @@ function Dashboard() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
-
   const [settingsOpen, setSettingsOpen] = useState(false)
-
   const [newUsername, setNewUsername] = useState('')
+
+  const [favourites, setFavourites] = useState([])
 
   const logout = async () => {
     await auth.signOut()
@@ -58,19 +59,37 @@ function Dashboard() {
     })
   }
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/')
+  const handleFavourite = (result: any) => async () => {
+    if (user) {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        let userDoc = docSnap.data();
+        let updatedFavourites = [];
+
+        if (userDoc.favourites) {
+          if (userDoc.favourites.includes(result.id)) {
+            updatedFavourites = userDoc.favourites.filter((fav: string) => fav !== result.id);
+          } else {
+            updatedFavourites = [...userDoc.favourites, result.id];
+          }
+        } else {
+          updatedFavourites = [result.id];
+        }
+        setFavourites(updatedFavourites);
+        await updateDoc(docRef, { favourites: updatedFavourites });
+      }
     }
-  }, [])
+  };
 
   const fetchUserData = async () => {
     if (user) {
       const docRef = doc(db, "users", user.uid)
       const docSnap = await getDoc(docRef)
-
       if (docSnap.exists()) {
         setUserProfile(docSnap.data())
+        if (docSnap.data().favourites) setFavourites(docSnap.data().favourites)
       } else {
         console.log("User document does not exist!")
       }
@@ -78,17 +97,21 @@ function Dashboard() {
   }
 
   useEffect(() => {
+    if (!user) {
+      navigate('/')
+    }
+  }, [])
+
+  useEffect(() => {
     fetchUserData()
   }, [user])
-
-  console.log(userProfile)
-
 
   return (
     <div className="items-center text-black justify-center w-1/2 h-2/3 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
       <div className="flex relative w-full justify-center text-center align-center items-center">
         <h1>Welcome, {userProfile ? userProfile.username ? userProfile.username : userProfile.email : "Loading..."}</h1>
         <text className="absolute right-0 cursor-pointer hover:text-gray-400 flex items-center gap-1" onClick={toggleSettings}><FaCog />account settings</text>
+
       </div>
       <div className="p-3 w-full h-full rounded-xl  justify-center flex flex-col">
         <div className="w-100 justify-center flex">
@@ -106,7 +129,13 @@ function Dashboard() {
               <a href={result.url} title={result.title}>
                 <img src={result.thumbnail} alt={result.title} className="rounded-xl  shadow-lg" />
               </a>
-              <Button className="absolute top-0 rounded-tl-xl z-10 bg-white/50 text-white hover:text-red-500 hover:bg-white/50"><FaHeart /></Button>
+              <Button
+                className={`absolute top-0 rounded-tl-xl z-10 bg-white/50 hover:text-red-500 hover:bg-white/50 ${favourites.includes(result.id) ? "text-red-500" : "text-white"}`}
+                onClick={handleFavourite(result)}
+              >
+                <FaHeart />
+              </Button>
+
             </div>
           ))}
         </div>
@@ -122,7 +151,8 @@ function Dashboard() {
             transition={{ type: "tween", duration: 0.3 }}
           >
             <div className="p-3 w-[500px] relivate h-full">
-              <h2 className="text-xl font-semibold mb-3">Account Settings</h2>
+              <h2 className="text-xl font-semibold ">Account Settings</h2>
+              <Separator className="mb-3 border-black border-2" />
               <p>Set Username</p>
               <div className="flex">
                 <form className="flex w-full" onSubmit={handleUsernameChange}>
