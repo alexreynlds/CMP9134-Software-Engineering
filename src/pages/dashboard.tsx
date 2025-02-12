@@ -18,6 +18,7 @@ function Dashboard() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [updatePassword] = useUpdatePassword(auth)
   const { toast } = useToast()
+  const [currentPage, setCurrentPage] = useState('search')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -92,19 +93,22 @@ function Dashboard() {
         let updatedFavourites = [];
 
         if (userDoc.favourites) {
-          if (userDoc.favourites.includes(result.id)) {
-            updatedFavourites = userDoc.favourites.filter((fav: string) => fav !== result.id);
+          const exists = userDoc.favourites.some((fav: any) => fav.id === result.id);
+
+          if (exists) {
+            updatedFavourites = userDoc.favourites.filter((fav: any) => fav.id !== result.id);
           } else {
-            updatedFavourites = [...userDoc.favourites, result.id];
+            updatedFavourites = [...userDoc.favourites, result];
           }
         } else {
-          updatedFavourites = [result.id];
+          updatedFavourites = [result];
         }
         setFavourites(updatedFavourites);
         await updateDoc(docRef, { favourites: updatedFavourites });
       }
     }
   };
+
 
   const fetchUserData = async () => {
     if (user) {
@@ -130,75 +134,104 @@ function Dashboard() {
   }, [user])
 
   return (
-    <div className="items-center text-black justify-center w-1/2 h-4/5 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
-      <div className="flex relative w-full justify-center text-center align-center items-center">
-        <h1>Welcome, {userProfile ? userProfile.username ? userProfile.username : userProfile.email : "Loading..."}</h1>
-        <text className="absolute right-0 cursor-pointer hover:text-gray-400 flex items-center gap-1" onClick={toggleSettings}><FaCog />account settings</text>
-      </div>
-      <div className="p-3 w-full h-full rounded-xl  justify-center flex flex-col">
-        <div className="w-100 justify-center flex">
-          <form className="w-1/3" onSubmit={handleSearch}>
-            <div className="flex">
-              <Input placeholder="Type to search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="rounded-l-xl" />
-              <Button className="rounded-r-xl">Search</Button>
-            </div>
-          </form>
+    <div className="w-full h-full items-center flex justify-center">
+      <div className="items-center text-black justify-center w-1/2 h-4/5 rounded-xl rounded-tl-none gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
+        <div className="absolute top-0 left-0  translate-y-[-100%] w-1/2">
+          <Button onClick={() => setCurrentPage("search")} className={`${currentPage == "search" ? "bg-gray-500/50" : "bg-white/50"} backdrop-blur-md`}>Search</Button>
+          <Button onClick={() => setCurrentPage("favourites")} className={`${currentPage == "favourites" ? "bg-gray-500/50" : "bg-white/50"} backdrop-blur-md`}>Favourites</Button>
         </div>
-        {/* Search Results */}
-        <div className="grid grid-cols-8 my-3 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full overflow-auto">
-          {searchResults.map((result: any) => (
-            <div key={result.id} className={`relative hover:scale-110 hover:rotate-[2deg]`}>
-              <a href={result.url} title={result.title}>
-                <img src={result.thumbnail} alt={result.title} className="rounded-xl  shadow-lg" />
-              </a>
-              <Button
-                className={`absolute top-0 rounded-tl-xl z-10 bg-white/50 hover:text-red-500 hover:bg-white/50 ${favourites.includes(result.id) ? "text-red-500" : "text-white"}`}
-                onClick={handleFavourite(result)}
-              >
-                <FaHeart />
-              </Button>
+        <div className="flex relative w-full justify-center text-center align-center items-center">
+          <h1>Welcome, {userProfile ? userProfile.username ? userProfile.username : userProfile.email : "Loading..."}</h1>
+          <text className="absolute right-0 cursor-pointer hover:text-gray-400 flex items-center gap-1" onClick={toggleSettings}><FaCog />account settings</text>
+        </div>
 
+        {/* Search Page */}
+        {currentPage == "search" && (
+          <div className="p-3 w-full h-full rounded-xl  justify-center flex flex-col">
+            <div className="w-100 justify-center flex">
+              <form className="w-1/3" onSubmit={handleSearch}>
+                <div className="flex">
+                  <Input placeholder="Type to search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="rounded-l-xl" />
+                  <Button className="rounded-r-xl">Search</Button>
+                </div>
+              </form>
             </div>
-          ))}
-        </div>
+            {/* Search Results */}
+            <div className="grid grid-cols-8 my-3 w-fill p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full overflow-auto">
+              {searchResults.map((result: any) => (
+                <div key={result.id} className={`relative hover:scale-110 hover:rotate-[2deg]`}>
+                  <a href={result.url} title={result.title}>
+                    <img src={result.thumbnail} alt={result.title} className="rounded-xl  shadow-lg" />
+                  </a>
+                  <Button
+                    className={`absolute top-0 rounded-tl-xl z-10 bg-white/50 hover:text-red-800 hover:bg-white/50 ${favourites.some((fav: any) => fav.id === result.id) ? "text-red-500" : "text-white"
+                      }`}
+                    onClick={handleFavourite(result)}
+                  >
+                    <FaHeart />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div >
+        )}
+
+        {/* Favourites Page */}
+        {currentPage == "favourites" && (
+          console.log(favourites),
+          <div className="grid grid-cols-8 my-3 w-full p-3 gap-3 border-red-100 border-[2px] rounded-xl h-full overflow-auto">
+            {favourites.map((fav: any) => (
+              <div key={fav.id} className={`relative`}>
+                <a href={fav.url} title={fav.title}>
+                  <img src={fav.thumbnail} alt={fav.title} className="rounded-xl shadow-lg" />
+                </a>
+                <Button
+                  className="absolute top-0 rounded-tl-xl z-10 bg-white/50 hover:text-red-800 hover:bg-white/50 text-red-500"
+                  onClick={handleFavourite(fav)}
+                >
+                  <FaHeart />
+                </Button>
+              </div>
+            ))}
+
+          </div>
+        )}
+        <Button className="rounded-xl w-1/4 mt-auto" onClick={logout}>LOGOUT</Button>
+        <AnimatePresence>
+          {settingsOpen && (
+            <motion.div
+              className="absolute w-1/3  h-full left-full bg-white/25 shadow-lg overflow-hidden rounded-xl ml-3 backdrop-blur-md"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 500, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "tween", duration: 0.3 }}
+            >
+              <div className="p-3 w-[500px] relivate h-full">
+                <h2 className="text-xl font-semibold ">Account Settings</h2>
+                <Separator className="mb-3 border-black border-2" />
+                <p>Change Username</p>
+                <div className="flex mb-3">
+                  <form className="flex w-full" onSubmit={handleUsernameChange}>
+                    <Input placeholder="username" className="rounded-l-xl" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+                    <Button className="rounded-r-xl" >Confirm</Button>
+                  </form>
+                </div>
+                <p>Change Password</p>
+                <div className="flex">
+                  <form className="flex w-full" onSubmit={handlePasswordChange}>
+                    <Input placeholder="password" type="password" className="rounded-l-xl" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                    <Button className="rounded-r-xl" >Confirm</Button>
+                  </form>
+                </div>
+                <text className="absolute bottom-3">UID: {userProfile.uid}</text>
+              </div>
+            </motion.div >
+          )}
+        </AnimatePresence >
       </div >
-      <Button className="rounded-xl w-1/4 mt-auto" onClick={logout}>LOGOUT</Button>
-      <AnimatePresence>
-        {settingsOpen && (
-          <motion.div
-            className="absolute w-1/3  h-full left-full bg-white/25 shadow-lg overflow-hidden rounded-xl ml-3 backdrop-blur-md"
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 500, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "tween", duration: 0.3 }}
-          >
-            <div className="p-3 w-[500px] relivate h-full">
-              <h2 className="text-xl font-semibold ">Account Settings</h2>
-              <Separator className="mb-3 border-black border-2" />
-              <p>Change Username</p>
-              <div className="flex mb-3">
-                <form className="flex w-full" onSubmit={handleUsernameChange}>
-                  <Input placeholder="username" className="rounded-l-xl" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-                  <Button className="rounded-r-xl" >Confirm</Button>
-                </form>
-              </div>
-              <p>Change Password</p>
-              <div className="flex">
-                <form className="flex w-full" onSubmit={handlePasswordChange}>
-                  <Input placeholder="password" type="password" className="rounded-l-xl" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                  <Button className="rounded-r-xl" >Confirm</Button>
-                </form>
-              </div>
-              <text className="absolute bottom-3">UID: {userProfile.uid}</text>
-            </div>
-          </motion.div >
-        )
-        }
-      </AnimatePresence >
-
-
     </div >
   )
 }
 
 export default Dashboard
+
