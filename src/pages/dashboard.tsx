@@ -7,20 +7,24 @@ import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { FaHeart, FaCog } from "react-icons/fa";
 import { AnimatePresence, motion } from 'framer-motion'
-import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore'
+import { doc, updateDoc, getDoc } from 'firebase/firestore'
 import { db } from '@/firebase/firebaseConfig'
 import { Separator } from '@/components/ui/separator'
+import { useUpdatePassword } from 'react-firebase-hooks/auth'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [user] = useAuthState(auth)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [updatePassword] = useUpdatePassword(auth)
   const { toast } = useToast()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [settingsOpen, setSettingsOpen] = useState(false)
+
   const [newUsername, setNewUsername] = useState('')
+  const [newPassword, setNewPassword] = useState('')
 
   const [favourites, setFavourites] = useState([])
 
@@ -46,6 +50,25 @@ function Dashboard() {
       })
     }
     fetchUserData()
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (user) {
+      const result = await updatePassword(newPassword)
+      if (result) {
+        toast({
+          title: "Password Updated!",
+          description: "You have successfully updated your password"
+        })
+      }
+      else {
+        toast({
+          title: "Password Update Failed!",
+          description: "Ensure your password is at least 6 characters long"
+        })
+      }
+    }
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -107,11 +130,10 @@ function Dashboard() {
   }, [user])
 
   return (
-    <div className="items-center text-black justify-center w-1/2 h-2/3 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
+    <div className="items-center text-black justify-center w-1/2 h-4/5 rounded-xl gap-3 relative backdrop-blur-md bg-white/25 flex flex-col  p-3 shadow-xl">
       <div className="flex relative w-full justify-center text-center align-center items-center">
         <h1>Welcome, {userProfile ? userProfile.username ? userProfile.username : userProfile.email : "Loading..."}</h1>
         <text className="absolute right-0 cursor-pointer hover:text-gray-400 flex items-center gap-1" onClick={toggleSettings}><FaCog />account settings</text>
-
       </div>
       <div className="p-3 w-full h-full rounded-xl  justify-center flex flex-col">
         <div className="w-100 justify-center flex">
@@ -153,10 +175,17 @@ function Dashboard() {
             <div className="p-3 w-[500px] relivate h-full">
               <h2 className="text-xl font-semibold ">Account Settings</h2>
               <Separator className="mb-3 border-black border-2" />
-              <p>Set Username</p>
-              <div className="flex">
+              <p>Change Username</p>
+              <div className="flex mb-3">
                 <form className="flex w-full" onSubmit={handleUsernameChange}>
                   <Input placeholder="username" className="rounded-l-xl" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+                  <Button className="rounded-r-xl" >Confirm</Button>
+                </form>
+              </div>
+              <p>Change Password</p>
+              <div className="flex">
+                <form className="flex w-full" onSubmit={handlePasswordChange}>
+                  <Input placeholder="password" type="password" className="rounded-l-xl" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                   <Button className="rounded-r-xl" >Confirm</Button>
                 </form>
               </div>
